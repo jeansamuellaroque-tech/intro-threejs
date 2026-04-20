@@ -19,12 +19,12 @@ import * as THREE from 'three';
 			};
 
 			const assets = [
-				'Samba Dancing',
-				'morph_test',
-				'monkey',
-				'monkey_embedded_texture',
-				'vCube',
-			];
+              'Samba Dancing',
+              'Walking',
+              'Running',
+              'Jump',
+			  'Walking Backwards',
+           ];
 
 
 			init();

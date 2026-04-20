@@ -35,7 +35,11 @@ intro-threejs/
     │
     └── models/
         └── fbx/
-            └── Samba Dancing.fbx  # Modelo animado
+            ├── Samba Dancing.fbx        # Animación de baile
+            ├── Walking.fbx              # Caminar
+            ├── Walking Backwards.fbx    # Caminar hacia atrás
+            ├── Running.fbx              # Correr
+            ├── Jump.fbx                 # Saltar
 ```
 
 ---
