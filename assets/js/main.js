@@ -1,207 +1,90 @@
 import * as THREE from 'three';
 
-			import Stats from 'three/addons/libs/stats.module.js';
+import Stats from 'three/addons/libs/stats.module.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
-			import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-			import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
-			import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+import { initAnimations, updateMixer } from './animacion.js';
 
-			const manager = new THREE.LoadingManager();
+let camera, scene, renderer, stats, object;
+let clock = new THREE.Clock();
 
-			let camera, scene, renderer, stats, object, loader, guiMorphsFolder;
-			let mixer;
+init();
 
-			const timer = new THREE.Timer();
-			timer.connect( document );
+function init() {
 
-			const params = {
-				asset: 'Samba Dancing'
-			};
+    const container = document.getElementById('canvas-container');
 
-			const assets = [
-              'Samba Dancing',
-              'Walking',
-              'Running',
-              'Jump',
-			  'Walking Backwards',
-           ];
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
+    camera.position.set(100, 200, 300);
 
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xa0a0a0);
 
-			init();
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 5);
+    scene.add(hemiLight);
 
-			function init() {
+    const dirLight = new THREE.DirectionalLight(0xffffff, 5);
+    dirLight.position.set(0, 200, 100);
+    scene.add(dirLight);
 
-				const container = document.createElement( 'div' );
-				document.body.appendChild( container );
+    const ground = new THREE.Mesh(
+        new THREE.PlaneGeometry(2000, 2000),
+        new THREE.MeshPhongMaterial({ color: 0x999999 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
 
-				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-				camera.position.set( 100, 200, 300 );
+    const grid = new THREE.GridHelper(2000, 20);
+    scene.add(grid);
 
-				scene = new THREE.Scene();
-				scene.background = new THREE.Color( 0xa0a0a0 );
-				scene.fog = new THREE.Fog( 0xa0a0a0, 200, 1000 );
+    const loader = new FBXLoader();
 
-				const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444, 5 );
-				hemiLight.position.set( 0, 200, 0 );
-				scene.add( hemiLight );
+   loader.load('./assets/models/fbx/character.fbx', (group) => {
 
-				const dirLight = new THREE.DirectionalLight( 0xffffff, 5 );
-				dirLight.position.set( 0, 200, 100 );
-				dirLight.castShadow = true;
-				dirLight.shadow.camera.top = 180;
-				dirLight.shadow.camera.bottom = - 100;
-				dirLight.shadow.camera.left = - 120;
-				dirLight.shadow.camera.right = 120;
-				scene.add( dirLight );
+        object = group;
+        object.scale.set(1, 1, 1);
 
-				// scene.add( new THREE.CameraHelper( dirLight.shadow.camera ) );
+        object.traverse(child => {
+            if (child.isMesh) {
+                child.castShadow = true;
+            }
+        });
 
-				// ground
-				const mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2000, 2000 ), new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
-				mesh.rotation.x = - Math.PI / 2;
-				mesh.receiveShadow = true;
-				scene.add( mesh );
+        scene.add(object);
 
-				const grid = new THREE.GridHelper( 2000, 20, 0x000000, 0x000000 );
-				grid.material.opacity = 0.2;
-				grid.material.transparent = true;
-				scene.add( grid );
-			
-				loader = new FBXLoader( manager );
-				loadAsset( params.asset );
+        initAnimations(object);
 
-				renderer = new THREE.WebGLRenderer( { antialias: true } );
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				renderer.setAnimationLoop( animate );
-				renderer.shadowMap.enabled = true;
-				container.appendChild( renderer.domElement );
+    });
 
-				const controls = new OrbitControls( camera, renderer.domElement );
-				controls.target.set( 0, 100, 0 );
-				controls.update();
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild(renderer.domElement);
 
-				window.addEventListener( 'resize', onWindowResize );
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 100, 0);
+    controls.update();
 
-				// stats
-				stats = new Stats();
-				container.appendChild( stats.dom );
+    stats = new Stats();
+    document.body.appendChild(stats.dom);
 
-				const gui = new GUI();
-				gui.add( params, 'asset', assets ).onChange( function ( value ) {
+    window.addEventListener('resize', onResize);
 
-					loadAsset( value );
+    animate();
+}
 
-				} );
+function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
 
-				guiMorphsFolder = gui.addFolder( 'Morphs' ).hide();
+function animate() {
+    requestAnimationFrame(animate);
 
-			}
+    const delta = clock.getDelta();
+    updateMixer(delta);
 
-			function loadAsset( asset ) {
-
-				loader.load( './assets/models/fbx/' + asset + '.fbx', function ( group ) {
-
-					if ( object ) {
-
-						object.traverse( function ( child ) {
-
-							if ( child.isSkinnedMesh ) {
-
-								child.skeleton.dispose();
-
-							}
-
-							if ( child.material ) {
-
-								const materials = Array.isArray( child.material ) ? child.material : [ child.material ];
-								materials.forEach( material => {
-
-									if ( material.map ) material.map.dispose();
-									material.dispose();
-			
-								} );
-			
-							}
-			
-							if ( child.geometry ) child.geometry.dispose();
-
-						} );
-
-						scene.remove( object );
-
-					}
-
-					//
-
-					object = group;
-
-					if ( object.animations && object.animations.length ) {
-
-						mixer = new THREE.AnimationMixer( object );
-
-						const action = mixer.clipAction( object.animations[ 0 ] );
-						action.play();
-
-					} else {
-
-						mixer = null;
-
-					}
-
-					guiMorphsFolder.children.forEach( ( child ) => child.destroy() );
-					guiMorphsFolder.hide();
-
-					object.traverse( function ( child ) {
-
-						if ( child.isMesh ) {
-
-							child.castShadow = true;
-							child.receiveShadow = true;
-
-							if ( child.morphTargetDictionary ) {
-
-								guiMorphsFolder.show();
-								const meshFolder = guiMorphsFolder.addFolder( child.name || child.uuid );
-								Object.keys( child.morphTargetDictionary ).forEach( ( key ) => {
-			
-									meshFolder.add( child.morphTargetInfluences, child.morphTargetDictionary[ key ], 0, 1, 0.01 );
-			
-								} );
-			
-							}
-
-						}
-
-					} );
-
-					scene.add( object );
-
-				} );
-
-			}
-
-			function onWindowResize() {
-
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
-			}
-
-			//
-
-			function animate() {
-
-				timer.update();
-
-				const delta = timer.getDelta();
-
-				if ( mixer ) mixer.update( delta );
-
-				renderer.render( scene, camera );
-
-				stats.update();
-
-			}
+    renderer.render(scene, camera);
+    stats.update();
+}

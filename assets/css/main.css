@@ -1,51 +1,62 @@
+/* 🌍 RESET GENERAL */
 body {
 	margin: 0;
 	background-color: #000;
 	color: #fff;
-	font-family: Monospace;
-	font-size: 13px;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	font-size: 14px;
 	line-height: 24px;
 	overscroll-behavior: none;
+	overflow: hidden;
 }
 
+/* 🔗 LINKS */
 a {
-	color: #ff0;
+	color: #00d4ff;
 	text-decoration: none;
+	transition: 0.3s;
 }
 
 a:hover {
 	text-decoration: underline;
+	color: #ffffff;
 }
 
+/* 🔘 BOTONES */
 button {
 	cursor: pointer;
 	text-transform: uppercase;
+	transition: 0.3s;
 }
 
+button:hover {
+	background-color: rgba(255,255,255,0.1);
+}
+
+/* ℹ INFO PANEL */
 #info {
 	position: absolute;
-	top: 0px;
-	width: 100%;
-	padding: 10px;
-	box-sizing: border-box;
-	text-align: center;
-	-moz-user-select: none;
-	-webkit-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
+	top: 70px;
+	left: 10px;
+	padding: 12px;
+	background: rgba(0, 0, 0, 0.6);
+	border-radius: 8px;
+	font-size: 13px;
 	pointer-events: none;
-	z-index: 1; /* TODO Solve this in HTML */
+	z-index: 10;
 }
 
 a, button, input, select {
 	pointer-events: auto;
 }
 
+/* 🎛 GUI (lil-gui) */
 .lil-gui {
-	z-index: 2 !important; /* TODO Solve this in HTML */
+	z-index: 20 !important;
 }
 
-@media all and ( max-width: 640px ) {
+/* 📱 RESPONSIVE GUI */
+@media all and (max-width: 640px) {
 	.lil-gui.root { 
 		right: auto;
 		top: auto;
@@ -56,10 +67,40 @@ a, button, input, select {
 	}
 }
 
+/* 🎬 CANVAS 3D */
+#canvas-container {
+	width: 100%;
+	height: calc(100vh - 112px);
+	display: block;
+}
+
+/* 🔝 NAVBAR */
+.navbar {
+	height: 56px;
+	z-index: 1000;
+}
+
+/* 🔻 FOOTER */
+footer {
+	height: 56px;
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	background: #111;
+	color: #aaa;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 13px;
+	border-top: 1px solid #222;
+}
+
+/* 🧊 OVERLAY (pantalla de carga opcional) */
 #overlay {
 	position: absolute;
 	font-size: 16px;
-	z-index: 2;
+	z-index: 30;
 	top: 0;
 	left: 0;
 	width: 100%;
@@ -68,24 +109,49 @@ a, button, input, select {
 	align-items: center;
 	justify-content: center;
 	flex-direction: column;
-	background: rgba(0,0,0,0.7);
+	background: rgba(0,0,0,0.8);
 }
 
-	#overlay button {
-		background: transparent;
-		border: 0;
-		border: 1px solid rgb(255, 255, 255);
-		border-radius: 4px;
-		color: #ffffff;
-		padding: 12px 18px;
-		text-transform: uppercase;
-		cursor: pointer;
-	}
+#overlay button {
+	background: transparent;
+	border: 1px solid #fff;
+	border-radius: 6px;
+	color: #fff;
+	padding: 12px 18px;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: 0.3s;
+}
 
+#overlay button:hover {
+	background: #fff;
+	color: #000;
+}
+
+/* ❌ ERROR */
 #notSupported {
 	width: 50%;
 	margin: auto;
-	background-color: #f00;
+	background-color: #ff0000;
 	margin-top: 20px;
 	padding: 10px;
+	text-align: center;
+	border-radius: 5px;
+}
+
+/* 🎮 PANEL DE CONTROLES (extra visual) */
+.controls-box {
+	position: absolute;
+	right: 10px;
+	top: 80px;
+	background: rgba(0,0,0,0.6);
+	padding: 10px 15px;
+	border-radius: 8px;
+	font-size: 13px;
+	z-index: 10;
+}
+
+/* ✨ EFECTO SUAVE GLOBAL */
+* {
+	scroll-behavior: smooth;
 }
